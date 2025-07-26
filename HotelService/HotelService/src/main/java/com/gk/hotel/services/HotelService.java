@@ -15,6 +15,9 @@ public interface HotelService {
     //get single hotel
     Hotel getHotel(String id);
 
-    //TODO: Delete
     //TODO: Update
+    Hotel updateHotel(String id, Hotel hotel);
+
+    //TODO: Delete
+    Hotel deleteHotel(String id);
 }

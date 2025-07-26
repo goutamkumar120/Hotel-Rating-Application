@@ -44,7 +44,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllUser() {
-        return userRepository.findAll();
+
+        List<User> users = userRepository.findAll();
+
+        return users.stream().map(user -> {
+            // Fetch ratings for each user
+            Rating[] ratingsOfUser = restTemplate.getForObject(
+                    "http://RATING-SERVICE/ratings/users/" + user.getUserId(),
+                    Rating[].class
+            );
+            logger.info("Ratings for user {}: {}", user.getUserId(), ratingsOfUser);
+
+            List<Rating> ratings = Arrays.stream(ratingsOfUser).toList();
+
+            // Enrich ratings with hotel details
+            List<Rating> ratingList = ratings.stream().map(rating -> {
+                Hotel hotel = hotelService.getHotel(rating.getHotelId());
+                rating.setHotel(hotel);
+                return rating;
+            }).collect(Collectors.toList());
+
+            user.setRatings(ratingList);
+            return user;
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -77,5 +99,27 @@ public class UserServiceImpl implements UserService {
 
         user.setRatings(ratingList);
         return user;
+    }
+
+    @Override
+    public User deleteUser(String userId) {
+        if (userRepository.existsById(userId)) {
+            User u = userRepository.findById(userId).get();
+            userRepository.deleteById(userId);
+            return u;
+        }
+        return null;
+    }
+
+    @Override
+    public User updateUser(String userId, User user) {
+        if (userRepository.existsById(userId)) {
+            User u = userRepository.findById(userId).get();
+            u.setName(user.getName());
+            u.setEmail(user.getEmail());
+            u.setAbout(user.getAbout());
+            return userRepository.save(u);
+        }
+        return null;
     }
 }

@@ -15,6 +15,7 @@ public class HotelServiceImpl implements HotelService {
 
     @Autowired
     private HotelRepository hotelRepository;
+
     @Override
     public Hotel create(Hotel hotel) {
         String hotelId = UUID.randomUUID().toString();
@@ -30,5 +31,27 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public Hotel getHotel(String id) {
         return hotelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Hoel with given id is not found !! :" + id));
+    }
+
+    @Override
+    public Hotel updateHotel(String id, Hotel hotel) {
+        if (hotelRepository.existsById(id)) {
+            Hotel h = hotelRepository.findById(id).get();
+            h.setName(hotel.getName());
+            h.setAbout(hotel.getAbout());
+            h.setLocation(hotel.getLocation());
+            return hotelRepository.save(h);
+        }
+        return null;
+    }
+
+    @Override
+    public Hotel deleteHotel(String id) {
+        if (hotelRepository.existsById(id)) {
+            Hotel hotel = hotelRepository.findById(id).get();
+            hotelRepository.deleteById(id);
+            return hotel;
+        }
+        return null;
     }
 }
